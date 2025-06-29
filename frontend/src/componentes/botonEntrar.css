@@ -1,0 +1,16 @@
+.boton-entrar {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    margin: 0 10px;
+}
+
+.boton-entrar:hover {
+    background-color: #0056b3;
+}
