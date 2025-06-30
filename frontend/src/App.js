@@ -1,26 +1,40 @@
-import './estilos/App.css'
+import './App.css';
 import BotonModo from './componentes/botonModo';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import './paginas/Jugador'
-import './paginas/Administrador'
-import { useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import Jugador from './paginas/Jugador';
+import Administrador from './paginas/Administrador';
+import Lobby from './paginas/Lobby';
+import Partida from './paginas/Partida';
+import Fin from './paginas/Fin';
 
-function App() {
-
+function Inicio() {
     const navigate = useNavigate();
 
-  return (
-    <div className="App">
-      <div className="contenido">
-          <h1>Bienvenido a Mente Maestra</h1>
-          <h3>El juego de cultura general</h3>
-          <div className="botones">
-            <BotonModo texto="Soy Administrador" color="#007BFF"  onClick={() => navigate('/administrador')} />
-            <BotonModo texto="Soy Jugador" color="#28a745"  onClick={() => navigate('/jugador')} />
-          </div>
-      </div>
-    </div>
-  );
+    return (
+        <div className="App">
+            <div className="contenido">
+                <h1>Bienvenido a Mente Maestra</h1>
+                <h3>El juego de cultura general</h3>
+                <div className="botones">
+                    <BotonModo texto="Soy Administrador" color="#007BFF" onClick={() => navigate('/administrador')} />
+                    <BotonModo texto="Soy Jugador" color="#28a745" onClick={() => navigate('/jugador')} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function App() {
+    return (
+        <Routes>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/administrador" element={<Administrador />} />
+            <Route path="/jugador" element={<Jugador />} />
+            <Route path="/lobby/:codigo" element={<Lobby />} />
+            <Route path="/partida/:codigo" element={<Partida />} />
+            <Route path="/fin" element={<Fin />} />
+        </Routes>
+    );
 }
 
 export default App;

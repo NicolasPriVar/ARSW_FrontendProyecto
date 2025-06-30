@@ -1,0 +1,53 @@
+.partida-contenedor {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to bottom right, #ffffff, #e0eafc);
+    min-height: 100vh;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.encabezado {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.pregunta-cuadro {
+    background-color: #f0f4ff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    width: 80%;
+    text-align: center;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.boton-opcion {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #6c63ff;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.boton-opcion:hover {
+    background-color: #574fd6;
+    transform: scale(1.05);
+}
+
+.boton-opcion.seleccionada {
+    background-color: #c000ff;
+    cursor: default;
+}

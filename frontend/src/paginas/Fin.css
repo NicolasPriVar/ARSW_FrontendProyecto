@@ -1,0 +1,15 @@
+.fin-contenedor {
+    padding: 20px;
+    text-align: center;
+}
+
+.lista-puntajes {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.lista-puntajes li {
+    font-size: 18px;
+    margin: 8px 0;
+}

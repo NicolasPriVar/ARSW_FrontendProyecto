@@ -1,29 +1,65 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BotonGenerar from '../componentes/botonGenerar';
 import BotonEntrar from '../componentes/botonEntrar';
 import './Administrador.css';
 
 function Administrador() {
     const [codigo, setCodigo] = useState('');
+    const [nombre, setNombre] = useState('');
+    const [error, setError] = useState('');
+    const [cargando, setCargando] = useState(false);
+    const navigate = useNavigate();
 
     const generarCodigo = async () => {
+        setCargando(true);
+        setError('');
         try {
-            const response = await fetch('http://localhost:8080/api/codigo', {
-                method: 'POST'
+            const response = await fetch('http://localhost:8080/api/codigo/generar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
             });
+
             const data = await response.json();
-            setCodigo(data.codigo);
+            if (data.codigo) {
+                setCodigo(data.codigo);
+            } else {
+                throw new Error(data.error || 'No se recibió un código válido');
+            }
         } catch (error) {
-            console.error('Error generando código:', error);
-            alert('Hubo un error generando el código');
+            setError(error.message || 'Hubo un error generando el código');
+        } finally {
+            setCargando(false);
         }
     };
 
-    const handleEntrar = () => {
-        if(!codigo) {
-            alert('Primero debes generar un código');
-        } else {
-            alert(`Entrando con código generado: ${codigo}`);
+    const handleEntrar = async () => {
+        if (!codigo) {
+            setError('Primero debes generar un código');
+            return;
+        }
+
+        if (!nombre.trim()) {
+            setError('Ingresa tu nombre');
+            return;
+        }
+
+        try {
+            await fetch('http://localhost:8080/api/codigo/ingresar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ codigo, nombre, rol: 'admin' })
+            });
+
+            navigate(`/lobby/${codigo}`, {
+                state: { nombre, rol: 'admin' }
+            });
+        } catch (error) {
+            console.error('Error al entrar como admin-jugador:', error);
+            setError('No se pudo ingresar a la partida');
         }
     };
 
@@ -31,11 +67,26 @@ function Administrador() {
         <div className="contenedor-administrador">
             <div className="administrador-panel">
                 <h2>¡Hola, Administrador!</h2>
-
-                <BotonGenerar texto="Generar código" onClick={generarCodigo} />
-                {codigo && <p className="codigo-generado">Codigo generado: <strong>{codigo}</strong></p> }
+                {error && <div className="error-message">{error}</div>}
+                <input
+                    type="text"
+                    placeholder="Tu nombre"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    className="codigo-input"
+                />
+                <BotonGenerar
+                    texto={cargando ? "Generando..." : "Generar código"}
+                    onClick={generarCodigo}
+                    disabled={cargando}
+                />
+                {codigo && <p className="codigo-generado">Código generado: <strong>{codigo}</strong></p>}
                 <div className="espacio" />
-                <BotonEntrar texto="Entrar" onClick={handleEntrar} />
+                <BotonEntrar
+                    texto="Entrar"
+                    onClick={handleEntrar}
+                    disabled={!codigo || cargando}
+                />
             </div>
         </div>
     );

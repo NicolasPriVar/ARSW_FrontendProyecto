@@ -1,0 +1,26 @@
+.corona {
+    color: goldenrod;
+    font-size: 1.2rem;
+    margin-left: 0.4rem;
+}
+.lista-jugadores {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.lista-jugadores li {
+    background-color: #f0f0f0;
+    margin: 0.3rem 0;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.corona {
+    margin-left: 0.5rem;
+    color: goldenrod;
+}
