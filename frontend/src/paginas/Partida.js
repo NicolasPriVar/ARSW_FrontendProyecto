@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react'; // Añade useCallback aquí
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import './Partida.css';
 
@@ -9,61 +9,45 @@ function Partida() {
     const nombre = location.state?.nombre || 'Jugador anónimo';
 
     const [pregunta, setPregunta] = useState(null);
+    const [opciones, setOpciones] = useState([]);
     const [respuestaSeleccionada, setRespuestaSeleccionada] = useState(null);
     const [feedback, setFeedback] = useState('');
     const [puntaje, setPuntaje] = useState(0);
     const [contador, setContador] = useState(15);
-    const [finJuego, setFinJuego] = useState(false);
 
-    const obtenerPregunta = async () => {
+    const cargarPregunta = useCallback(async () => {
         const res = await fetch(`http://localhost:8080/api/codigo/pregunta/${codigo}`);
         const data = await res.json();
 
         if (data.fin) {
-            setFinJuego(true);
-            navigate("/fin");
-        } else {
-            setPregunta(data);
-            setRespuestaSeleccionada(null);
-            setContador(15);
+            navigate("/fin", { state: { codigo } });
+            return;
         }
-    };
+
+        if (data.nuevaPregunta || !pregunta || data.enunciado !== pregunta.enunciado) {
+            setPregunta({ enunciado: data.enunciado });
+            setOpciones(data.opciones);
+            setRespuestaSeleccionada(null);
+            setFeedback('');
+        }
+
+        setContador(data.tiempoRestante);
+    }, [codigo, navigate, pregunta]);
 
     useEffect(() => {
-        obtenerPregunta();
-    }, [codigo]);
-
-    useEffect(() => {
-        if (finJuego || respuestaSeleccionada) return;
+        cargarPregunta();
 
         const intervalo = setInterval(() => {
-            setContador(prev => {
-                if (prev === 1) {
-                    clearInterval(intervalo);
-                    fetch(`http://localhost:8080/api/codigo/pregunta/avanzar/${codigo}`, {
-                        method: "POST"
-                    })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.fin) {
-                                navigate("/fin", {
-                                    state: { codigo }
-                                });
-                            } else {
-                                obtenerPregunta();
-                            }
-                        });
-                }
-                return prev - 1;
-            });
+            cargarPregunta();
         }, 1000);
 
         return () => clearInterval(intervalo);
-    }, [contador, respuestaSeleccionada, finJuego]);
+    }, [cargarPregunta]);
 
     const manejarRespuesta = async (opcion) => {
+        if (respuestaSeleccionada) return;
+
         setRespuestaSeleccionada(opcion);
-        setFeedback(opcion.correcta ? "✅ ¡Correcto!" : "❌ Incorrecto");
 
         const res = await fetch("http://localhost:8080/api/codigo/respuesta", {
             method: "POST",
@@ -76,10 +60,23 @@ function Partida() {
         });
 
         const data = await res.json();
+
+        setRespuestaSeleccionada({
+            ...opcion,
+            correcta: data.correcta
+        });
+
+        setFeedback(data.correcta ? "✅ ¡Respuesta correcta!" : "❌ Respuesta incorrecta");
         setPuntaje(data.puntaje);
     };
 
-    if (!pregunta) return <div className="partida-contenedor"><p>Cargando pregunta...</p></div>;
+    if (!pregunta) {
+        return (
+            <div className="partida-contenedor">
+                <p>Cargando pregunta...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="partida-contenedor">
@@ -95,10 +92,14 @@ function Partida() {
             </div>
 
             <div className="opciones">
-                {pregunta.opciones.map((opcion, index) => (
+                {opciones.map((opcion, index) => (
                     <button
                         key={index}
-                        className={`boton-opcion ${respuestaSeleccionada?.texto === opcion.texto ? 'seleccionada' : ''}`}
+                        className={`boton-opcion ${
+                            respuestaSeleccionada?.texto === opcion.texto
+                                ? (respuestaSeleccionada.correcta ? 'correcta' : 'incorrecta')
+                                : ''
+                        }`}
                         onClick={() => manejarRespuesta(opcion)}
                         disabled={!!respuestaSeleccionada}
                     >
@@ -107,7 +108,7 @@ function Partida() {
                 ))}
             </div>
 
-            {feedback && <p className="feedback">{feedback}</p>}
+            {feedback && <div className="feedback">{feedback}</div>}
         </div>
     );
 }
