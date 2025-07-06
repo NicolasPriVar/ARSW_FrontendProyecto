@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import BotonGenerar from '../componentes/botonGenerar';
 import BotonEntrar from '../componentes/botonEntrar';
 import './Administrador.css';
+import BotonCantidadPreguntas from '../componentes/BotonCantidadPreguntas';
 
 function Administrador() {
     const [codigo, setCodigo] = useState('');
@@ -10,6 +11,7 @@ function Administrador() {
     const [error, setError] = useState('');
     const [cargando, setCargando] = useState(false);
     const navigate = useNavigate();
+    const [cantidadPreguntas, setCantidadPreguntas] = useState(5);
 
     const generarCodigo = async () => {
         setCargando(true);
@@ -51,7 +53,7 @@ function Administrador() {
             await fetch('http://localhost:8080/api/codigo/ingresar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ codigo, nombre, rol: 'admin' })
+                body: JSON.stringify({ codigo, nombre, rol: 'admin', cantidadPreguntas })  // <<--- AQUÍ
             });
 
             navigate(`/lobby/${codigo}`, {
@@ -79,6 +81,10 @@ function Administrador() {
                     texto={cargando ? "Generando..." : "Generar código"}
                     onClick={generarCodigo}
                     disabled={cargando}
+                />
+                <BotonCantidadPreguntas
+                    seleccion={cantidadPreguntas}
+                    onSeleccionar={setCantidadPreguntas}
                 />
                 {codigo && <p className="codigo-generado">Código generado: <strong>{codigo}</strong></p>}
                 <div className="espacio" />
