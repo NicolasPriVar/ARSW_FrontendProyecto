@@ -3,11 +3,16 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import './Fin.css';
 import Confetti from 'react-confetti';
 import { useWindowSize } from '@react-hook/window-size';
+import { useContext } from 'react';
+import { CallContext } from '../CallContext';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Fin() {
     const [width, height] = useWindowSize();
     const location = useLocation();
     const navigate = useNavigate();
+    const { setEnLlamada, setNombre, setCodigo } = useContext(CallContext);
     const codigo = location.state?.codigo;
 
     const [puntajes, setPuntajes] = useState([]);
@@ -33,6 +38,14 @@ function Fin() {
         }
     }, [codigo]);
 
+    const volverInicio = () => {
+        setEnLlamada(false);
+        setNombre('');
+        setCodigo('');
+        toast("📞 Has salido de la llamada");
+        setTimeout(() => navigate('/'), 1500);
+    };
+
     const medalla = (index) => {
         if (index === 0) return '🥇';
         if (index === 1) return '🥈';
@@ -56,7 +69,7 @@ function Fin() {
                         </li>
                     ))}
                 </ul>
-                <button className="boton-volver" onClick={() => navigate('/')}>
+                <button className="boton-volver" onClick={volverInicio}>
                     🔁 Volver al inicio
                 </button>
             </div>

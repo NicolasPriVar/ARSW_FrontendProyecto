@@ -6,6 +6,9 @@ import Administrador from './paginas/Administrador';
 import Lobby from './paginas/Lobby';
 import Partida from './paginas/Partida';
 import Fin from './paginas/Fin';
+import LlamadaVoz from './componentes/LlamadaVoz';
+import { useContext } from 'react';
+import { CallContext } from './CallContext';
 
 function Inicio() {
     const navigate = useNavigate();
@@ -25,15 +28,20 @@ function Inicio() {
 }
 
 function App() {
+    const { enLlamada, nombre, codigo } = useContext(CallContext);
+
     return (
-        <Routes>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/administrador" element={<Administrador />} />
-            <Route path="/jugador" element={<Jugador />} />
-            <Route path="/lobby/:codigo" element={<Lobby />} />
-            <Route path="/partida/:codigo" element={<Partida />} />
-            <Route path="/fin" element={<Fin />} />
-        </Routes>
+        <>
+            <Routes>
+                <Route path="/" element={<Inicio />} />
+                <Route path="/administrador" element={<Administrador />} />
+                <Route path="/jugador" element={<Jugador />} />
+                <Route path="/lobby/:codigo" element={<Lobby />} />
+                <Route path="/partida/:codigo" element={<Partida />} />
+                <Route path="/fin" element={<Fin />} />
+            </Routes>
+            {enLlamada && nombre && codigo && <LlamadaVoz codigo={codigo} nombre={nombre} />}
+        </>
     );
 }
 

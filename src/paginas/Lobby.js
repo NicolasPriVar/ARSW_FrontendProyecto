@@ -4,7 +4,11 @@ import ListaJugadores from '../componentes/ListaJugadores';
 import './Lobby.css';
 import BotonSalir from '../componentes/BotonSalir';
 import BotonIniciar from '../componentes/BotonIniciar';
+import BotonLlamada from "../componentes/botonLlamada";
+import LlamadaVoz from "../componentes/LlamadaVoz";
 import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { CallContext } from '../CallContext';
 
 
 function Lobby() {
@@ -13,6 +17,7 @@ function Lobby() {
     const nombre = location.state?.nombre || 'Jugador anónimo';
     const navigate = useNavigate();
     const rol = location.state?.rol || 'jugador';
+    const { enLlamada, setEnLlamada, setCodigo, setNombre } = useContext(CallContext);
 
     const [jugadores, setJugadores] = useState({});
     const [partidaIniciada, setPartidaIniciada] = useState(false);
@@ -63,6 +68,7 @@ function Lobby() {
 
     const redirigidoRef = useRef(false);
 
+
     useEffect(() => {
         const verificarEstado = async () => {
             if (redirigidoRef.current) return;
@@ -85,6 +91,14 @@ function Lobby() {
         return () => clearInterval(intervalo);
     }, [codigo, nombre, rol, navigate]);
 
+    const handleClickLlamada = () => {
+        if (!enLlamada) {
+            setNombre(nombre);
+            setCodigo(codigo);
+            setEnLlamada(true);
+        }
+        setEnLlamada(!enLlamada);
+    };
     return (
         <div className="lobby-contenedor">
             <div className="lobby-panel">
@@ -113,7 +127,12 @@ function Lobby() {
                     <BotonIniciar onClick={handleIniciar} />
                 )}
                 <p>Esperando a más jugadores...</p>
-
+                <BotonLlamada
+                    conectado={enLlamada}
+                    onClick={handleClickLlamada}
+                    className="boton-llamada-flotante"
+                />
+                {enLlamada && <LlamadaVoz codigo={codigo} nombre={nombre} />}
             </div>
         </div>
     );

@@ -1,0 +1,16 @@
+.boton-llamada-flotante {
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    background-color: #c000ff;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+}
+
+.boton-llamada:hover {
+    background-color: #cc6d00;
+}
