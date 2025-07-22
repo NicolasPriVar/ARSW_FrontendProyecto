@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import SockJS from "sockjs-client";
 
 const servers = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -103,8 +104,7 @@ function LlamadaVoz({ codigo, nombre }) {
                 localStream.current = stream;
                 setConectado(true);
 
-                // 2. Luego abrir WebSocket
-                ws.current = new WebSocket(`wss://${BACKEND_DOMAIN}/ws/llamada/${codigo}`);
+                ws.current = new SockJS(`https://${BACKEND_DOMAIN}/ws/llamada`);
 
                 ws.current.onopen = () => {
                     ws.current.send(JSON.stringify({ from: nombre, type: "join" }));
