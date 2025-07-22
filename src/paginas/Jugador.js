@@ -38,7 +38,7 @@ function Jugador() {
         setMensajeError('');
 
         try {
-            const response = await fetch('http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/ingresar', {
+            const response = await fetch('https://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/ingresar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ codigo, nombre })

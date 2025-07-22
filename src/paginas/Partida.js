@@ -31,7 +31,7 @@ function Partida() {
 
     const cargarPregunta = useCallback(async () => {
         try {
-            const res = await fetch(`http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/pregunta/${codigo}`);
+            const res = await fetch(`https://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/pregunta/${codigo}`);
             const data = await res.json();
 
             if (data.fin) {
@@ -63,7 +63,7 @@ function Partida() {
     };
 
     useEffect(() => {
-        const socket = new SockJS('http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/ws');
+        const socket = new SockJS('https://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/ws');
         const client = new Client({
             webSocketFactory: () => socket,
             onConnect: () => {
@@ -108,7 +108,7 @@ function Partida() {
         setRespuestaSeleccionada(opcion);
 
         try {
-            const res = await fetch("http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/respuesta", {
+            const res = await fetch("https://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/respuesta", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
