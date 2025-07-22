@@ -95,14 +95,13 @@ function LlamadaVoz({ codigo, nombre }) {
     }, [nombre]);
 
     useEffect(() => {
-        let streamObtained = false;
-
+        const peers = peersRef.current;
+        const remotes = remoteAudios.current;
         // 1. Obtener audio primero
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then((stream) => {
                 localStream.current = stream;
                 setConectado(true);
-                streamObtained = true;
 
                 // 2. Luego abrir WebSocket
                 ws.current = new WebSocket(`wss://${BACKEND_DOMAIN}/ws/llamada/${codigo}`);
@@ -150,8 +149,8 @@ function LlamadaVoz({ codigo, nombre }) {
             });
 
         return () => {
-            Object.values(peersRef.current).forEach((pc) => pc.close());
-            Object.values(remoteAudios.current).forEach((audio) => {
+            Object.values(peers).forEach((pc) => pc.close());
+            Object.values(remote).forEach((audio) => {
                 audio.pause();
                 audio.srcObject = null;
                 audio.remove();
