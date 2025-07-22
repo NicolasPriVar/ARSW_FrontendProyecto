@@ -23,7 +23,7 @@ function Partida() {
     const [feedback, setFeedback] = useState('');
     const [puntaje, setPuntaje] = useState(0);
     const [contador, setContador] = useState(15);
-    const [stompClient, setStompClient] = useState(null);
+    const [setStompClient] = useState(null);
 
     const cargarPregunta = useCallback(async () => {
         const res = await fetch(`http://localhost:8080/api/codigo/pregunta/${codigo}`);
@@ -45,8 +45,8 @@ function Partida() {
     }, [codigo, navigate, pregunta]);
     const handleClickLlamada = () => {
         if (!enLlamada) {
-            setNombre(nombreJugador);   // nombreJugador viene del location.state
-            setCodigo(codigo);          // de useParams
+            setNombre(nombreJugador);
+            setCodigo(codigo);
             setEnLlamada(true);
         } else {
             setEnLlamada(false);
@@ -122,21 +122,20 @@ function Partida() {
             </div>
         );
     }
+
     <BotonLlamada conectado={enLlamada} onClick={handleClickLlamada} />
-    {enLlamada && nombreLlamada && codigoLlamada && (
+    {enLlamada && nombreLlamada && codigoLlamada (
         <LlamadaVoz codigo={codigoLlamada} nombre={nombreLlamada} />
     )}
 
     return (
         <div className="partida-contenedor">
-            {/* Botón para activar/desactivar llamada */}
             <BotonLlamada
                 conectado={enLlamada}
                 onClick={handleClickLlamada}
                 className="boton-llamada-flotante"
             />
 
-            {/* Componente de llamada si está activa */}
             {enLlamada && nombreLlamada && codigoLlamada && (
                 <LlamadaVoz codigo={codigoLlamada} nombre={nombreLlamada} />
             )}

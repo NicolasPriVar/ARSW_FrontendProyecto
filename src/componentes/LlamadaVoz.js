@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 const servers = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -11,12 +11,77 @@ function LlamadaVoz({ codigo, nombre }) {
     const localStream = useRef(null);
     const remoteAudios = useRef({});
 
+    const createPeerConnection = (otherUser) => {
+        const pc = new RTCPeerConnection(servers);
+
+        localStream.current.getTracks().forEach((track) => {
+            pc.addTrack(track, localStream.current);
+        });
+
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                ws.current.send(
+                    JSON.stringify({
+                        from: nombre,
+                        to: otherUser,
+                        type: "candidate",
+                        candidate: event.candidate,
+                    })
+                );
+            }
+        };
+
+        pc.ontrack = (event) => {
+            if (!remoteAudios.current[otherUser]) {
+                const audio = document.createElement("audio");
+                audio.srcObject = event.streams[0];
+                audio.autoplay = true;
+                document.body.appendChild(audio);
+                remoteAudios.current[otherUser] = audio;
+            }
+        };
+
+        peersRef.current[otherUser] = pc;
+        return pc;
+    };
+
+    const createOffer = useCallback(async (to) => {
+        const pc = createPeerConnection(to);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        ws.current.send(
+            JSON.stringify({
+                from: nombre,
+                to,
+                type: "offer",
+                sdp: offer,
+            })
+        );
+    }, [nombre]);
+
+    const createAnswer = useCallback(async (from, offer) => {
+        const pc = createPeerConnection(from);
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        ws.current.send(
+            JSON.stringify({
+                from: nombre,
+                to: from,
+                type: "answer",
+                sdp: answer,
+            })
+        );
+    }, [nombre]);
+
     useEffect(() => {
         ws.current = new WebSocket(`ws://localhost:8080/ws/llamada/${codigo}`);
 
         ws.current.onmessage = async (message) => {
             const data = JSON.parse(message.data);
-            const { from, to, type, sdp, candidate } = data;
+            const { from, type, sdp, candidate } = data;
 
             if (from === nombre) return;
 
@@ -58,81 +123,19 @@ function LlamadaVoz({ codigo, nombre }) {
                 alert("No se pudo acceder al micrófono. Verifica que esté conectado, encendido y permitido por el navegador.");
             });
 
-
         return () => {
-            Object.values(peersRef.current).forEach((pc) => pc.close());
-            Object.values(remoteAudios.current).forEach((audio) => audio.remove());
+            const peersSnapshot = peersRef.current;
+            const audiosSnapshot = remoteAudios.current;
+
+            Object.values(peersSnapshot).forEach((pc) => pc.close());
+            Object.values(audiosSnapshot).forEach((audio) => audio.remove());
+
             if (ws.current) ws.current.close();
             if (localStream.current) {
                 localStream.current.getTracks().forEach((t) => t.stop());
             }
         };
-    }, []);
-
-    const createPeerConnection = (otherUser) => {
-        const pc = new RTCPeerConnection(servers);
-
-        localStream.current.getTracks().forEach((track) => {
-            pc.addTrack(track, localStream.current);
-        });
-
-        pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                ws.current.send(
-                    JSON.stringify({
-                        from: nombre,
-                        to: otherUser,
-                        type: "candidate",
-                        candidate: event.candidate,
-                    })
-                );
-            }
-        };
-
-        pc.ontrack = (event) => {
-            if (!remoteAudios.current[otherUser]) {
-                const audio = document.createElement("audio");
-                audio.srcObject = event.streams[0];
-                audio.autoplay = true;
-                document.body.appendChild(audio);
-                remoteAudios.current[otherUser] = audio;
-            }
-        };
-
-        peersRef.current[otherUser] = pc;
-        return pc;
-    };
-
-    const createOffer = async (to) => {
-        const pc = createPeerConnection(to);
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-
-        ws.current.send(
-            JSON.stringify({
-                from: nombre,
-                to,
-                type: "offer",
-                sdp: offer,
-            })
-        );
-    };
-
-    const createAnswer = async (from, offer) => {
-        const pc = createPeerConnection(from);
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-
-        ws.current.send(
-            JSON.stringify({
-                from: nombre,
-                to: from,
-                type: "answer",
-                sdp: answer,
-            })
-        );
-    };
+    }, [codigo, nombre, createAnswer, createOffer]);
 
     return (
         <div>
