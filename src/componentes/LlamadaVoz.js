@@ -4,6 +4,8 @@ const servers = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
+const BACKEND_DOMAIN = "mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net";
+
 function LlamadaVoz({ codigo, nombre }) {
     const [conectado, setConectado] = useState(false);
     const peersRef = useRef({});
@@ -77,7 +79,8 @@ function LlamadaVoz({ codigo, nombre }) {
     }, [nombre]);
 
     useEffect(() => {
-        ws.current = new WebSocket(`ws://localhost:8080/ws/llamada/${codigo}`);
+        // ⚠️ Importante: usar `wss://` para WebSocket seguro en producción
+        ws.current = new WebSocket(`wss://${BACKEND_DOMAIN}/ws/llamada/${codigo}`);
 
         ws.current.onmessage = async (message) => {
             const data = JSON.parse(message.data);

@@ -5,7 +5,6 @@ import Confetti from 'react-confetti';
 import { useWindowSize } from '@react-hook/window-size';
 import { useContext } from 'react';
 import { CallContext } from '../CallContext';
-import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Fin() {
