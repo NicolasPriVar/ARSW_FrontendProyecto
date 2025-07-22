@@ -20,7 +20,7 @@ function Fin() {
     useEffect(() => {
         const obtenerPuntajes = async () => {
             try {
-                const res = await fetch(`https://localhost:8080/api/codigo/puntajes/${codigo}`);
+                const res = await fetch(`https://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/puntajes/${codigo}`);
                 const data = await res.json();
 
                 const ordenados = Object.entries(data)
