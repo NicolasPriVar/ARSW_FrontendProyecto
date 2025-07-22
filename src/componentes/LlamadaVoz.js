@@ -6,7 +6,6 @@ const servers = {
 
 const BACKEND_DOMAIN = "mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net";
 
-// 🔧 Esta función ahora está fuera del componente
 function createPeerConnection({ otherUser, localStream, ws, nombre, peersRef, remoteAudios }) {
     const pc = new RTCPeerConnection(servers);
 
@@ -141,10 +140,9 @@ function LlamadaVoz({ codigo, nombre }) {
                 console.error("Error al acceder al micrófono:", err);
                 alert("No se pudo acceder al micrófono. Verifica que esté conectado, encendido y permitido por el navegador.");
             });
-
-        return () => {
-            const peersSnapshot = { ...peersRef.current };
-            const audiosSnapshot = { ...remoteAudios.current };
+        const peersSnapshot = peersRef.current;
+        const audiosSnapshot = remoteAudios.current;
+        return () => {            
 
             Object.values(peersSnapshot).forEach((pc) => pc.close());
             Object.values(audiosSnapshot).forEach((audio) => audio.remove());
