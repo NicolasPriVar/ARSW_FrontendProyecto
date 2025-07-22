@@ -150,7 +150,7 @@ function LlamadaVoz({ codigo, nombre }) {
 
         return () => {
             Object.values(peers).forEach((pc) => pc.close());
-            Object.values(remote).forEach((audio) => {
+            Object.values(remotes).forEach((audio) => {
                 audio.pause();
                 audio.srcObject = null;
                 audio.remove();
