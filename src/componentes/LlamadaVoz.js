@@ -95,57 +95,67 @@ function LlamadaVoz({ codigo, nombre }) {
     }, [nombre]);
 
     useEffect(() => {
-        ws.current = new WebSocket(`wss://${BACKEND_DOMAIN}/ws/llamada/${codigo}`);
+        let streamObtained = false;
 
-        ws.current.onmessage = async (message) => {
-            const data = JSON.parse(message.data);
-            const { from, type, sdp, candidate } = data;
-
-            if (from === nombre) return;
-
-            if (type === "join") {
-                if (!peersRef.current[from] && nombre.localeCompare(from) > 0) {
-                    await createOffer(from);
-                }
-            }
-
-            if (type === "offer") {
-                if (!peersRef.current[from]) {
-                    await createAnswer(from, sdp);
-                }
-            }
-
-            if (type === "answer") {
-                const pc = peersRef.current[from];
-                if (pc && !pc.currentRemoteDescription) {
-                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                }
-            }
-
-            if (type === "candidate") {
-                const pc = peersRef.current[from];
-                if (pc) {
-                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
-                }
-            }
-        };
-
+        // 1. Obtener audio primero
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then((stream) => {
                 localStream.current = stream;
                 setConectado(true);
-                ws.current.send(JSON.stringify({ from: nombre, type: "join" }));
+                streamObtained = true;
+
+                // 2. Luego abrir WebSocket
+                ws.current = new WebSocket(`wss://${BACKEND_DOMAIN}/ws/llamada/${codigo}`);
+
+                ws.current.onopen = () => {
+                    ws.current.send(JSON.stringify({ from: nombre, type: "join" }));
+                };
+
+                ws.current.onmessage = async (message) => {
+                    const data = JSON.parse(message.data);
+                    const { from, type, sdp, candidate } = data;
+
+                    if (from === nombre) return;
+
+                    if (type === "join") {
+                        if (localStream.current && !peersRef.current[from] && nombre.localeCompare(from) > 0) {
+                            await createOffer(from);
+                        }
+                    }
+
+                    if (type === "offer") {
+                        if (!peersRef.current[from]) {
+                            await createAnswer(from, sdp);
+                        }
+                    }
+
+                    if (type === "answer") {
+                        const pc = peersRef.current[from];
+                        if (pc && !pc.remoteDescription) {
+                            await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+                        }
+                    }
+
+                    if (type === "candidate") {
+                        const pc = peersRef.current[from];
+                        if (pc) {
+                            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                        }
+                    }
+                };
             })
             .catch((err) => {
                 console.error("Error al acceder al micrófono:", err);
                 alert("No se pudo acceder al micrófono. Verifica que esté conectado, encendido y permitido por el navegador.");
             });
-        const peersSnapshot = peersRef.current;
-        const audiosSnapshot = remoteAudios.current;
-        return () => {
 
-            Object.values(peersSnapshot).forEach((pc) => pc.close());
-            Object.values(audiosSnapshot).forEach((audio) => audio.remove());
+        return () => {
+            Object.values(peersRef.current).forEach((pc) => pc.close());
+            Object.values(remoteAudios.current).forEach((audio) => {
+                audio.pause();
+                audio.srcObject = null;
+                audio.remove();
+            });
 
             if (ws.current) ws.current.close();
             if (localStream.current) {

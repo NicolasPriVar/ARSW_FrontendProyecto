@@ -83,8 +83,6 @@ function Partida() {
                 });
             },
             debug: (str) => {
-                // Opcional para desarrollo
-                // console.log(str);
             },
         });
 
