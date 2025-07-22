@@ -23,6 +23,7 @@ function Partida() {
     const [feedback, setFeedback] = useState('');
     const [puntaje, setPuntaje] = useState(0);
     const [contador, setContador] = useState(15);
+    const [setStompClient] = useState(null);
 
     const cargarPregunta = useCallback(async () => {
         const res = await fetch(`http://localhost:8080/api/codigo/pregunta/${codigo}`);
@@ -42,7 +43,6 @@ function Partida() {
 
         setContador(data.tiempoRestante);
     }, [codigo, navigate, pregunta]);
-
     const handleClickLlamada = () => {
         if (!enLlamada) {
             setNombre(nombreJugador);
