@@ -63,7 +63,7 @@ function Partida() {
     };
 
     useEffect(() => {
-        const socket = new SockJS('https://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/ws');
+        const socket = new SockJS('https://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/ws/llamada');
         const client = new Client({
             webSocketFactory: () => socket,
             onConnect: () => {
