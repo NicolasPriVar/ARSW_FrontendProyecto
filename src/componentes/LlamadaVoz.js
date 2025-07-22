@@ -6,6 +6,41 @@ const servers = {
 
 const BACKEND_DOMAIN = "mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net";
 
+// 🔧 Esta función ahora está fuera del componente
+function createPeerConnection({ otherUser, localStream, ws, nombre, peersRef, remoteAudios }) {
+    const pc = new RTCPeerConnection(servers);
+
+    localStream.getTracks().forEach((track) => {
+        pc.addTrack(track, localStream);
+    });
+
+    pc.onicecandidate = (event) => {
+        if (event.candidate) {
+            ws.send(
+                JSON.stringify({
+                    from: nombre,
+                    to: otherUser,
+                    type: "candidate",
+                    candidate: event.candidate,
+                })
+            );
+        }
+    };
+
+    pc.ontrack = (event) => {
+        if (!remoteAudios[otherUser]) {
+            const audio = document.createElement("audio");
+            audio.srcObject = event.streams[0];
+            audio.autoplay = true;
+            document.body.appendChild(audio);
+            remoteAudios[otherUser] = audio;
+        }
+    };
+
+    peersRef[otherUser] = pc;
+    return pc;
+}
+
 function LlamadaVoz({ codigo, nombre }) {
     const [conectado, setConectado] = useState(false);
     const peersRef = useRef({});
@@ -13,42 +48,16 @@ function LlamadaVoz({ codigo, nombre }) {
     const localStream = useRef(null);
     const remoteAudios = useRef({});
 
-    const createPeerConnection = (otherUser) => {
-        const pc = new RTCPeerConnection(servers);
-
-        localStream.current.getTracks().forEach((track) => {
-            pc.addTrack(track, localStream.current);
+    const createOffer = useCallback(async (to) => {
+        const pc = createPeerConnection({
+            otherUser: to,
+            localStream: localStream.current,
+            ws: ws.current,
+            nombre,
+            peersRef: peersRef.current,
+            remoteAudios: remoteAudios.current,
         });
 
-        pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                ws.current.send(
-                    JSON.stringify({
-                        from: nombre,
-                        to: otherUser,
-                        type: "candidate",
-                        candidate: event.candidate,
-                    })
-                );
-            }
-        };
-
-        pc.ontrack = (event) => {
-            if (!remoteAudios.current[otherUser]) {
-                const audio = document.createElement("audio");
-                audio.srcObject = event.streams[0];
-                audio.autoplay = true;
-                document.body.appendChild(audio);
-                remoteAudios.current[otherUser] = audio;
-            }
-        };
-
-        peersRef.current[otherUser] = pc;
-        return pc;
-    };
-
-    const createOffer = useCallback(async (to) => {
-        const pc = createPeerConnection(to);
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
@@ -63,7 +72,15 @@ function LlamadaVoz({ codigo, nombre }) {
     }, [nombre]);
 
     const createAnswer = useCallback(async (from, offer) => {
-        const pc = createPeerConnection(from);
+        const pc = createPeerConnection({
+            otherUser: from,
+            localStream: localStream.current,
+            ws: ws.current,
+            nombre,
+            peersRef: peersRef.current,
+            remoteAudios: remoteAudios.current,
+        });
+
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -79,7 +96,6 @@ function LlamadaVoz({ codigo, nombre }) {
     }, [nombre]);
 
     useEffect(() => {
-        // ⚠️ Importante: usar `wss://` para WebSocket seguro en producción
         ws.current = new WebSocket(`wss://${BACKEND_DOMAIN}/ws/llamada/${codigo}`);
 
         ws.current.onmessage = async (message) => {
@@ -127,8 +143,8 @@ function LlamadaVoz({ codigo, nombre }) {
             });
 
         return () => {
-            const peersSnapshot = peersRef.current;
-            const audiosSnapshot = remoteAudios.current;
+            const peersSnapshot = { ...peersRef.current };
+            const audiosSnapshot = { ...remoteAudios.current };
 
             Object.values(peersSnapshot).forEach((pc) => pc.close());
             Object.values(audiosSnapshot).forEach((audio) => audio.remove());

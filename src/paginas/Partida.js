@@ -7,15 +7,20 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import LlamadaVoz from '../componentes/LlamadaVoz';
 
-
 function Partida() {
     const { codigo } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
 
     const nombreJugador = location.state?.nombre || 'Jugador anónimo';
-    const { enLlamada, setEnLlamada, setCodigo, setNombre, nombre: nombreLlamada, codigo: codigoLlamada } = useContext(CallContext);
-
+    const {
+        enLlamada,
+        setEnLlamada,
+        setCodigo,
+        setNombre,
+        nombre: nombreLlamada,
+        codigo: codigoLlamada
+    } = useContext(CallContext);
 
     const [pregunta, setPregunta] = useState(null);
     const [opciones, setOpciones] = useState([]);
@@ -23,26 +28,30 @@ function Partida() {
     const [feedback, setFeedback] = useState('');
     const [puntaje, setPuntaje] = useState(0);
     const [contador, setContador] = useState(15);
-    const [setStompClient] = useState(null);
 
     const cargarPregunta = useCallback(async () => {
-        const res = await fetch(`http://localhost:8080/api/codigo/pregunta/${codigo}`);
-        const data = await res.json();
+        try {
+            const res = await fetch(`http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/pregunta/${codigo}`);
+            const data = await res.json();
 
-        if (data.fin) {
-            navigate("/fin", { state: { codigo } });
-            return;
+            if (data.fin) {
+                navigate("/fin", { state: { codigo } });
+                return;
+            }
+
+            if (data.nuevaPregunta || !pregunta || data.enunciado !== pregunta.enunciado) {
+                setPregunta({ enunciado: data.enunciado });
+                setOpciones(data.opciones);
+                setRespuestaSeleccionada(null);
+                setFeedback('');
+            }
+
+            setContador(data.tiempoRestante);
+        } catch (error) {
+            console.error("Error cargando pregunta:", error);
         }
-
-        if (data.nuevaPregunta || !pregunta || data.enunciado !== pregunta.enunciado) {
-            setPregunta({ enunciado: data.enunciado });
-            setOpciones(data.opciones);
-            setRespuestaSeleccionada(null);
-            setFeedback('');
-        }
-
-        setContador(data.tiempoRestante);
     }, [codigo, navigate, pregunta]);
+
     const handleClickLlamada = () => {
         if (!enLlamada) {
             setNombre(nombreJugador);
@@ -52,8 +61,9 @@ function Partida() {
             setEnLlamada(false);
         }
     };
+
     useEffect(() => {
-        const socket = new SockJS('http://localhost:8080/ws');
+        const socket = new SockJS('http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/ws');
         const client = new Client({
             webSocketFactory: () => socket,
             onConnect: () => {
@@ -72,10 +82,13 @@ function Partida() {
                     setContador(data.tiempoRestante);
                 });
             },
+            debug: (str) => {
+                // Opcional para desarrollo
+                // console.log(str);
+            },
         });
 
         client.activate();
-        setStompClient(client);
 
         cargarPregunta();
 
@@ -94,25 +107,29 @@ function Partida() {
 
         setRespuestaSeleccionada(opcion);
 
-        const res = await fetch("http://localhost:8080/api/codigo/respuesta", {
-            method: "POST",
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                codigo,
-                nombre: nombreJugador,
-                respuesta: opcion.texto
-            })
-        });
+        try {
+            const res = await fetch("http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/respuesta", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    codigo,
+                    nombre: nombreJugador,
+                    respuesta: opcion.texto
+                })
+            });
 
-        const data = await res.json();
+            const data = await res.json();
 
-        setRespuestaSeleccionada({
-            ...opcion,
-            correcta: data.correcta
-        });
+            setRespuestaSeleccionada({
+                ...opcion,
+                correcta: data.correcta
+            });
 
-        setFeedback(data.correcta ? "✅ ¡Respuesta correcta!" : "❌ Respuesta incorrecta");
-        setPuntaje(data.puntaje);
+            setFeedback(data.correcta ? "✅ ¡Respuesta correcta!" : "❌ Respuesta incorrecta");
+            setPuntaje(data.puntaje);
+        } catch (error) {
+            console.error("Error enviando respuesta:", error);
+        }
     };
 
     if (!pregunta) {
@@ -123,23 +140,21 @@ function Partida() {
         );
     }
 
-    <BotonLlamada conectado={enLlamada} onClick={handleClickLlamada} />
-    {enLlamada && nombreLlamada && codigoLlamada (
-        <LlamadaVoz codigo={codigoLlamada} nombre={nombreLlamada} />
-    )}
-
     return (
         <div className="partida-contenedor">
+            {/* Botón de llamada */}
             <BotonLlamada
                 conectado={enLlamada}
                 onClick={handleClickLlamada}
                 className="boton-llamada-flotante"
             />
 
+            {/* Componente de llamada */}
             {enLlamada && nombreLlamada && codigoLlamada && (
                 <LlamadaVoz codigo={codigoLlamada} nombre={nombreLlamada} />
             )}
 
+            {/* Información de juego */}
             <div className="encabezado">
                 <h2>Código de partida: {codigo}</h2>
                 <h4>Jugador: {nombreJugador}</h4>
@@ -147,10 +162,12 @@ function Partida() {
                 <p>Tiempo restante: {contador} segundos</p>
             </div>
 
+            {/* Pregunta actual */}
             <div className="pregunta-cuadro">
                 <h3>{pregunta.enunciado}</h3>
             </div>
 
+            {/* Opciones */}
             <div className="opciones">
                 {opciones.map((opcion, index) => (
                     <button
@@ -168,6 +185,7 @@ function Partida() {
                 ))}
             </div>
 
+            {/* Feedback */}
             {feedback && <div className="feedback">{feedback}</div>}
         </div>
     );
