@@ -142,7 +142,7 @@ function LlamadaVoz({ codigo, nombre }) {
             });
         const peersSnapshot = peersRef.current;
         const audiosSnapshot = remoteAudios.current;
-        return () => {            
+        return () => {
 
             Object.values(peersSnapshot).forEach((pc) => pc.close());
             Object.values(audiosSnapshot).forEach((audio) => audio.remove());

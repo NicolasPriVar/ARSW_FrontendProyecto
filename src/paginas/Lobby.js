@@ -25,11 +25,11 @@ function Lobby() {
     useEffect(() => {
         const fetchJugadores = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/api/codigo/jugadores/${codigo}`);
+                const response = await fetch(`http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/jugadores/${codigo}`);
                 const data = await response.json();
                 setJugadores(data);
 
-                const resEstado = await fetch(`http://localhost:8080/api/codigo/estado/${codigo}`);
+                const resEstado = await fetch(`http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/estado/${codigo}`);
                 const dataEstado = await resEstado.json();
                 setPartidaIniciada(dataEstado.iniciada);
             } catch (error) {
@@ -44,7 +44,7 @@ function Lobby() {
 
     const handleIniciar = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/codigo/iniciar`, {
+            const response = await fetch(`http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/iniciar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ function Lobby() {
             if (redirigidoRef.current) return;
 
             try {
-                const res = await fetch(`http://localhost:8080/api/codigo/estado/${codigo}`);
+                const res = await fetch(`http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/estado/${codigo}`);
                 const data = await res.json();
                 if (data.iniciada) {
                     redirigidoRef.current = true;
@@ -110,7 +110,7 @@ function Lobby() {
                 {rol !== 'admin' && (
                     <BotonSalir onClick={async () => {
                         try {
-                            await fetch(`http://localhost:8080/api/codigo/salir`, {
+                            await fetch(`http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net0/api/codigo/salir`, {
                                 method: 'DELETE',
                                 headers: {
                                     'Content-Type': 'application/json',

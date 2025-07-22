@@ -17,7 +17,7 @@ function Administrador() {
         setCargando(true);
         setError('');
         try {
-            const response = await fetch('http://localhost:8080/api/codigo/generar', {
+            const response = await fetch('http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/generar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ function Administrador() {
         }
 
         try {
-            await fetch('http://localhost:8080/api/codigo/ingresar', {
+            await fetch('http://mentemaestra-fffra0affsaggzd4.canadacentral-01.azurewebsites.net/api/codigo/ingresar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ codigo, nombre, rol: 'admin', cantidadPreguntas })  // <<--- AQUÍ
