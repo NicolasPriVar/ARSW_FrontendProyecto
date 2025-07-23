@@ -104,7 +104,7 @@ function LlamadaVoz({ codigo, nombre }) {
                 localStream.current = stream;
                 setConectado(true);
 
-                ws.current = new SockJS(`https://${BACKEND_DOMAIN}/ws/llamada`);
+                ws.current = new SockJS(`https://${BACKEND_DOMAIN}/ws/llamada/{codigo}`);
 
                 ws.current.onopen = () => {
                     ws.current.send(JSON.stringify({ from: nombre, type: "join" }));
